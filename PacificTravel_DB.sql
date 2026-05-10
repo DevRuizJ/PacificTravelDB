@@ -27,6 +27,9 @@ GO
 
 SELECT * FROM T_User;
 
+INSERT INTO T_User(NumeroDocumento, Nombre, ApellidoPaterno, ApellidoMaterno, Email, PhoneNumber, Direccion, Password)
+VALUES ('73456781', 'Carmen', 'Luque', 'Toledo', 'cluque@email.com', '983457123', 'Ate Vitarte', 'mango765');
+
 -- Tabla de Clientes
 CREATE TABLE T_Customer (
     CustomerID INT IDENTITY(1,1) PRIMARY KEY,
@@ -57,11 +60,13 @@ GO
 
 SELECT * FROM T_Hotel;
 
+INSERT INTO T_Hotel (HotelRUC, Nombre, Email, PhoneNumber, Direccion)
+VALUES('20874567891', 'Hotel Rengifo', 'rengifoHotel@email.com', '51 7652456', 'Urb Castilla 873 Calle Libertadores');
+
 -- Tabla de Transacciones
 CREATE TABLE T_Transaccion (
     TransaccionID INT IDENTITY(1,1) PRIMARY KEY,
     CodigoTransaccion NVARCHAR(10) NOT NULL,
-    HotelID INT FOREIGN KEY REFERENCES T_Hotel(HotelID),
     UserID INT FOREIGN KEY REFERENCES T_User(UserId),
     MontoTotal Decimal(19,4) NOT NULL,
     Descripcion NVARCHAR(MAX) NOT NULL,
@@ -72,10 +77,15 @@ GO
 
 SELECT * FROM T_Transaccion;
 
+
+INSERT INTO T_Transaccion (CodigoTransaccion, HotelID, UserID, MontoTotal, Descripcion, FechaTransaccion)
+VALUES('B002-00002', 3, 4, 700.00, 'Reserva por aniversario', '2025-03-17');
+
 -- Tabla de Reservas Cabecera
 CREATE TABLE T_Reserva_Header (
     ReservaHeaderID INT IDENTITY(1,1) PRIMARY KEY,
     CodigoReserva NVARCHAR(10) NOT NULL,
+    HotelID INT FOREIGN KEY REFERENCES T_Hotel(HotelID),
     TransaccionID INT FOREIGN KEY REFERENCES T_Transaccion(TransaccionID),
     UserID INT FOREIGN KEY REFERENCES T_User(UserID),--Usuario que realiza la reserva
     FechaReserva DATE NOT NULL,
@@ -84,6 +94,9 @@ CREATE TABLE T_Reserva_Header (
 GO
 
 SELECT * FROM T_Reserva_Header;
+
+INSERT INTO T_Reserva_Header (CodigoReserva, HotelID, TransaccionID, UserID, FechaReserva)
+VALUES('RA34761', 2, 8, 2, '2025-03-01');
 
 
 -- Tabla de Reservas Detalle
@@ -144,38 +157,41 @@ o Formular consultas que respondan a preguntas clave de la
 empresa, tales como: 
 
 ▪ ¿Cuántas reservas se realizaron en un mes específico? **/
-SELECT COUNT(ho.RUC),
-		ho.HotelRUC,
-		ho.Nombre 
+SELECT COUNT(*) AS Total_Reservas_MES
 FROM T_Hotel ho
 INNER JOIN T_Transaccion tr 
 	ON ho.HotelID = tr.HotelID
 INNER JOIN T_Reserva_Header rh
-	ON tr.TransaccionID = rh.TransaccionID
-WHERE MONTH(rh.FechaReserva) = '2'
-ORDER BY COUNT(ho.RUC)  DESC
+	ON tr.TransaccionID = rh.TransaccionID 
+WHERE MONTH(rh.FechaReserva) = '3';
 
 /**
 ▪ ¿Cuáles son los cinco hoteles más reservados? **/
-SELECT COUNT(ho.RUC),
-		ho.HotelRUC,
-		ho.Nombre 
+SELECT TOP 5 ho.HotelRUC,
+		ho.Nombre,
+		COUNT(rh.HotelID) AS Total_Reservas
 FROM T_Hotel ho
 INNER JOIN T_Transaccion tr 
 	ON ho.HotelID = tr.HotelID
 INNER JOIN T_Reserva_Header rh
 	ON tr.TransaccionID = rh.TransaccionID
-ORDER BY COUNT(ho.RUC)  DESC 
-
+GROUP BY ho.HotelRUC, ho.Nombre
+ORDER BY Total_Reservas DESC;
+		
 /**
 ▪ ¿Quién es el cliente que más ha gastado en reservas
 durante el último año? **/
-SELECT TOP 1 tr.MontoTotal, 
-			CONCAT(us.Nombre, " ", us.ApellidoPaterno, " ", us.ApellidoMaterno) 
+SELECT TOP 1  CONCAT(us.ApellidoPaterno, ' ', us.ApellidoMaterno, ', ', us.Nombre),
+		SUM(tr.MontoTotal) AS Monto_Total_Pagado
 FROM T_User us
 INNER JOIN T_Transaccion tr 
-	ON us.UserID = tr.UserID
-ORDER BY tr.MontoTotal DESC;
+    ON us.UserID = tr.UserID
+GROUP BY 
+    us.UserID,
+    us.Nombre,
+    us.ApellidoPaterno,
+    us.ApellidoMaterno 
+ORDER BY Monto_Total_Pagado DESC;
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
