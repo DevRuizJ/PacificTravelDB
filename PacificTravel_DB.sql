@@ -2,6 +2,14 @@ CREATE database PacificTravelDB;
 
 Use PacificTravelDB;
 
+/**
+1. Diseño de la Base de Datos: 
+o Crear una base de datos que incluya las siguientes tablas: 
+Clientes, Hoteles, Reservas, y Pagos. 
+o Definir las relaciones entre estas tablas mediante claves primarias 
+y foráneas.
+**/
+
 -- Tabla de Usuarios
 CREATE TABLE T_User (
     UserID INT IDENTITY(1,1) PRIMARY KEY,
@@ -126,6 +134,48 @@ CREATE TABLE T_PermisoRol (
     FechaRegistro DATETIME DEFAULT GETDATE()
 );
 GO
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+/**
+ 2. Consultas SQL: 
+o Formular consultas que respondan a preguntas clave de la 
+empresa, tales como: 
+
+▪ ¿Cuántas reservas se realizaron en un mes específico? **/
+SELECT COUNT(ho.RUC),
+		ho.HotelRUC,
+		ho.Nombre 
+FROM T_Hotel ho
+INNER JOIN T_Transaccion tr 
+	ON ho.HotelID = tr.HotelID
+INNER JOIN T_Reserva_Header rh
+	ON tr.TransaccionID = rh.TransaccionID
+WHERE MONTH(rh.FechaReserva) = '2'
+ORDER BY COUNT(ho.RUC)  DESC
+
+/**
+▪ ¿Cuáles son los cinco hoteles más reservados? **/
+SELECT COUNT(ho.RUC),
+		ho.HotelRUC,
+		ho.Nombre 
+FROM T_Hotel ho
+INNER JOIN T_Transaccion tr 
+	ON ho.HotelID = tr.HotelID
+INNER JOIN T_Reserva_Header rh
+	ON tr.TransaccionID = rh.TransaccionID
+ORDER BY COUNT(ho.RUC)  DESC 
+
+/**
+▪ ¿Quién es el cliente que más ha gastado en reservas
+durante el último año? **/
+SELECT TOP 1 tr.MontoTotal, 
+			CONCAT(us.Nombre, " ", us.ApellidoPaterno, " ", us.ApellidoMaterno) 
+FROM T_User us
+INNER JOIN T_Transaccion tr 
+	ON us.UserID = tr.UserID
+ORDER BY tr.MontoTotal DESC;
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
