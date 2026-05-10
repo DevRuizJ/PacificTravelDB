@@ -165,6 +165,7 @@ INNER JOIN T_Reserva_Header rh
 	ON tr.TransaccionID = rh.TransaccionID 
 WHERE MONTH(rh.FechaReserva) = '3';
 
+
 /**
 ▪ ¿Cuáles son los cinco hoteles más reservados? **/
 SELECT TOP 5 ho.HotelRUC,
@@ -178,6 +179,7 @@ INNER JOIN T_Reserva_Header rh
 GROUP BY ho.HotelRUC, ho.Nombre
 ORDER BY Total_Reservas DESC;
 		
+
 /**
 ▪ ¿Quién es el cliente que más ha gastado en reservas
 durante el último año? **/
@@ -192,7 +194,6 @@ GROUP BY
     us.ApellidoPaterno,
     us.ApellidoMaterno 
 ORDER BY Monto_Total_Pagado DESC;
-
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
